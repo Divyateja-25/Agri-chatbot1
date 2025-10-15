@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agri Chatbot</title>
+    <!-- Using Tailwind CSS for a modern, responsive layout -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Custom styles for the background image -->
+    <style>
+        body {
+            background-image: url("{{ url_for('static', filename='nano.jpg') }}");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed; /* Keeps background fixed on scroll */
+        }
+    </style>
+</head>
+<body class="flex flex-col h-full font-sans">
+
+    <!-- Header Section -->
+    <header class="bg-white/90 backdrop-blur-sm shadow-md w-full p-4 flex justify-between items-center">
+        <div class="flex items-center">
+            <span class="text-3xl mr-3">🌱</span>
+            <div>
+                <h1 class="text-xl font-bold text-gray-800">Agri Chatbot</h1>
+                <!-- Welcome message for the logged-in user -->
+                <p class="text-sm text-gray-600">Welcome, <span class="font-semibold">{{ username }}</span>!</p>
+            </div>
+        </div>
+        <div class="flex items-center">
+            <!-- Language Selector -->
+            <select id="language-selector" class="rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 mr-4">
+                <option value="en" {% if language == 'en' %}selected{% endif %}>English</option>
+                <option value="te" {% if language == 'te' %}selected{% endif %}>Telugu</option>
+                <option value="hi" {% if language == 'hi' %}selected{% endif %}>Hindi</option>
+                <option value="ta" {% if language == 'ta' %}selected{% endif %}>Tamil</option>
+                <option value="ml" {% if language == 'ml' %}selected{% endif %}>Malayalam</option>
+                <option value="kn" {% if language == 'kn' %}selected{% endif %}>Kannada</option>
+            </select>
+            <!-- Logout Button -->
+            <a href="{{ url_for('logout') }}" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200">
+                Logout
+            </a>
+        </div>
+    </header>
+
+    <!-- Main Chat Container -->
+    <main class="flex-1 p-4 flex justify-center items-center">
+        <div class="w-full max-w-2xl h-full flex flex-col bg-white/90 backdrop-blur-sm rounded-xl shadow-lg">
+            <!-- Chat Messages Window -->
+            <div id="chat-window" class="flex-1 p-6 overflow-y-auto">
+                <!-- Initial bot message -->
+                <div class="mb-4">
+                    <div class="bg-green-100 text-green-800 p-3 rounded-lg inline-block max-w-xs">
+                        Hello {{ username }}! How can I help you today?
+                    </div>
+                </div>
+            </div>
+            <!-- Message Input Form -->
+            <div class="p-4 border-t border-gray-200">
+                <form id="chat-form" class="flex items-center">
+                    <input type="text" id="message-input" placeholder="Type your message here..." autocomplete="off" required
+                           class="w-full border border-gray-300 rounded-lg py-2 px-4 focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-200">
+                    <button type="submit" class="ml-4 bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200">
+                        Send
+                    </button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // --- JavaScript for Chat Functionality ---
+
+        // Get elements from the DOM
+        const chatForm = document.getElementById('chat-form');
+        const messageInput = document.getElementById('message-input');
+        const chatWindow = document.getElementById('chat-window');
+        const languageSelector = document.getElementById('language-selector');
+
+        // Function to add a message to the chat window
+        function addMessage(message, sender) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('mb-4');
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.classList.add('p-3', 'rounded-lg', 'inline-block', 'max-w-md');
+            contentDiv.innerText = message;
+
+            if (sender === 'user') {
+                // Style for user's message (right-aligned)
+                messageDiv.classList.add('text-right');
+                contentDiv.classList.add('bg-blue-500', 'text-white');
+            } else {
+                // Style for bot's message (left-aligned)
+                contentDiv.classList.add('bg-green-100', 'text-green-800');
+            }
+
+            messageDiv.appendChild(contentDiv);
+            chatWindow.appendChild(messageDiv);
+            // Scroll to the bottom to see the new message
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+
+        // --- Event Listener for Sending a Message ---
+        chatForm.addEventListener('submit', async (e) => {
+            e.preventDefault(); // Prevent default form submission
+            
+            const userMessage = messageInput.value.trim();
+            if (!userMessage) return; // Don't send empty messages
+
+            // Display user's message immediately
+            addMessage(userMessage, 'user');
+            messageInput.value = ''; // Clear the input field
+
+            // Send message to the Flask backend
+            try {
+                const response = await fetch('/get', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: userMessage })
+                });
+                const data = await response.json();
+                
+                // Display the bot's response
+                addMessage(data.response, 'bot');
+
+            } catch (error) {
+                console.error('Error fetching bot response:', error);
+                addMessage('Sorry, something went wrong. Please try again.', 'bot');
+            }
+        });
+
+        // --- Event Listener for Changing Language ---
+        languageSelector.addEventListener('change', async (e) => {
+            const selectedLanguage = e.target.value;
+            try {
+                await fetch('/set_language', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ language: selectedLanguage })
+                });
+                // Optional: You can add a small notification that the language was changed
+                addMessage(`Language switched to ${e.target.options[e.target.selectedIndex].text}.`, 'bot');
+            } catch (error) {
+                console.error('Error setting language:', error);
+            }
+        });
+    </script>
+</body>
+</html>
+

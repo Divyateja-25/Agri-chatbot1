@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-md mx-auto bg-white p-8 rounded-xl shadow-lg">
+        <h1 class="text-2xl font-bold text-center">Login Page Test</h1>
+        <p class="text-center text-gray-600 mt-2">If you can see this, the template is loading.</p>
+        
+        <!-- A basic form without flash messages -->
+        <form action="/login" method="post" class="mt-8">
+            <div class="mb-4">
+                <label for="username" class="block text-gray-700 font-semibold mb-2">Username</label>
+                <input type="text" id="username" name="username" class="w-full border border-gray-300 rounded-lg py-2 px-4">
+            </div>
+            <div class="mb-6">
+                <label for="password" class="block text-gray-700 font-semibold mb-2">Password</label>
+                <input type="password" id="password" name="password" class="w-full border border-gray-300 rounded-lg py-2 px-4">
+            </div>
+            <button type="submit" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg">
+                Log In
+            </button>
+        </form>
+         <p class="text-center text-gray-600 mt-6">
+            <a href="/register" class="text-green-600 hover:underline font-semibold">Sign up here</a>
+        </p>
+    </div>
+</body>
+</html>
